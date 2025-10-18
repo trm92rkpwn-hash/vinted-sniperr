@@ -1,0 +1,44 @@
+const axios = require("axios");
+const cheerio = require("cheerio");
+const { WebhookClient } = require("discord.js");
+
+const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK; // Sécurisé sur Render
+const CHECK_URL = "https://www.vinted.fr/catalog?search_text=jeans";
+const INTERVAL_MS = 5 * 60 * 1000; // toutes les 5 minutes
+
+const webhook = new WebhookClient({ url: DISCORD_WEBHOOK });
+
+async function checkVinted() {
+  try {
+    const { data } = await axios.get(CHECK_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const $ = cheerio.load(data);
+    const items = [];
+
+    $("a[href*='/items/']").slice(0, 5).each((i, el) => {
+      const title = $(el).text().trim().slice(0, 120);
+      let link = $(el).attr("href");
+      if (link.startsWith("/")) link = "https://www.vinted.fr" + link;
+      items.push({ title, link });
+    });
+
+    if (items.length) {
+      console.log(`[${new Date().toLocaleTimeString()}] ${items.length} annonces trouvées`);
+      await webhook.send(`🔔 ${items.length} nouvelles annonces sur Vinted ! Exemple: ${items[0].link}`);
+    } else {
+      console.log(`[${new Date().toLocaleTimeString()}] Aucune annonce trouvée`);
+    }
+  } catch (err) {
+    console.error("Erreur fetch:", err.message);
+  }
+}
+
+// --- Keepalive pour Render ---
+const express = require("express");
+const app = express();
+app.get("/", (req, res) => res.send("Bot Vinted actif !"));
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Serveur keepalive sur port ${port}`);
+  checkVinted();
+  setInterval(checkVinted, INTERVAL_MS);
+});
