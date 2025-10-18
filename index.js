@@ -6,7 +6,7 @@ const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK; // Sécurisé sur Render
 const CHECK_URL = "https://www.vinted.fr/catalog?search_text=jeans";
 const INTERVAL_MS = 5 * 60 * 1000; // toutes les 5 minutes
 
-const webhook = new WebhookClient({ url: DISCORD_WEBHOOK });
+const webhook = new WebhookClient({ url: https://discord.com/api/webhooks/1428857392300556414/Ye6YirWdifhES-DbFINU8Nr61eqCIQd_pGxLwsEkUxAxNP7GAf2KwJ645YTsg-KoVwBt });
 
 async function checkVinted() {
   try {
